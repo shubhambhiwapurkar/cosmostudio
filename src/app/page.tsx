@@ -53,29 +53,35 @@ export default function Home() {
     setStep('landing');
   }
 
-  if (step === 'loading') {
-    return (
-        <div className="flex h-screen w-full items-center justify-center bg-background">
-            <div className="w-full max-w-md space-y-4 p-4">
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-12 w-1/2 mx-auto" />
-            </div>
-        </div>
-    );
+  const renderStep = () => {
+    switch (step) {
+      case 'loading':
+        return (
+          <div className="flex h-screen w-full items-center justify-center bg-background">
+              <div className="w-full max-w-md space-y-4 p-4">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="h-12 w-1/2 mx-auto" />
+              </div>
+          </div>
+        );
+      case 'landing':
+        return <LandingPage onSignIn={handleSignIn} />;
+      case 'onboarding':
+        return <BirthChartForm onSubmit={handleFormSubmit} />;
+      case 'dashboard':
+        if (birthData) {
+            return <Dashboard birthData={birthData} onReset={handleReset} />;
+        }
+        return <LandingPage onSignIn={handleSignIn} />; // Fallback
+      default:
+        return <LandingPage onSignIn={handleSignIn} />;
+    }
   }
 
-  if (step === 'landing') {
-    return <LandingPage onSignIn={handleSignIn} />;
-  }
-
-  if (step === 'onboarding') {
-    return <BirthChartForm onSubmit={handleFormSubmit} />;
-  }
-  
-  if (step === 'dashboard' && birthData) {
-    return <Dashboard birthData={birthData} onReset={handleReset} />;
-  }
-
-  return <LandingPage onSignIn={handleSignIn} />;
+  return (
+    <div key={step} className="animate-in fade-in-0 duration-500">
+      {renderStep()}
+    </div>
+  );
 }

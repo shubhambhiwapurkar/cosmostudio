@@ -10,9 +10,10 @@ type LandingPageProps = {
 
 export default function LandingPage({ onSignIn }: LandingPageProps) {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8 text-center bg-background">
+    <main className="flex min-h-screen flex-col items-center justify-center p-8 text-center bg-background overflow-hidden">
+      <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,hsl(var(--primary)/0.2),rgba(255,255,255,0))] animate-breathing-bg"></div>
       <div className="flex flex-col items-center gap-4 mb-8">
-        <Logo className="h-16 w-16 text-primary" />
+        <Logo className="h-16 w-16 text-primary animate-pulse-slow" />
         <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl text-foreground">
           Cosmic Insights AI
         </h1>

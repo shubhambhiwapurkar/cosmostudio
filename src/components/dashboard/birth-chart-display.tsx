@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Sun, Moon, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const AstrologicalCard = ({
   icon: Icon,
@@ -8,17 +9,22 @@ const AstrologicalCard = ({
   sign,
   description,
   color,
+  delay = 0,
 }: {
   icon: React.ElementType;
   title: string;
   sign: string;
   description: string;
   color: string;
+  delay?: number;
 }) => (
-  <Card className="bg-card/50 backdrop-blur-sm">
+  <Card 
+    className="bg-card/50 backdrop-blur-sm animate-in fade-in-0 slide-in-from-bottom-4 duration-500"
+    style={{ animationDelay: `${delay}ms` }}
+  >
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      <Icon className={`h-5 w-5 ${color}`} />
+      <Icon className={cn("h-5 w-5", color)} />
     </CardHeader>
     <CardContent>
       <div className="text-2xl font-bold">{sign}</div>
@@ -30,7 +36,7 @@ const AstrologicalCard = ({
 export default function BirthChartDisplay() {
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
+      <div className="space-y-1 animate-in fade-in-0 duration-500">
         <h2 className="text-2xl font-bold tracking-tight">Your Cosmic Blueprint</h2>
         <p className="text-muted-foreground">A summary of your key astrological placements.</p>
       </div>
@@ -42,6 +48,7 @@ export default function BirthChartDisplay() {
           sign="Aries"
           description="Your core identity & ego."
           color="text-yellow-400"
+          delay={100}
         />
         <AstrologicalCard
           icon={Moon}
@@ -49,6 +56,7 @@ export default function BirthChartDisplay() {
           sign="Taurus"
           description="Your emotional inner world."
           color="text-slate-300"
+          delay={200}
         />
         <AstrologicalCard
           icon={Sparkles}
@@ -56,10 +64,11 @@ export default function BirthChartDisplay() {
           sign="Leo"
           description="Your social personality."
           color="text-purple-400"
+          delay={300}
         />
       </div>
       
-      <div className="space-y-4">
+      <div className="space-y-4 animate-in fade-in-0 duration-500" style={{ animationDelay: '400ms' }}>
         <h3 className="text-lg font-semibold">Notable Aspects</h3>
         <div className="flex flex-wrap gap-2">
             <Badge variant="outline">Sun Trine Moon</Badge>
