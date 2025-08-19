@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -11,8 +12,6 @@ export default {
     extend: {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
-        code: ['monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
@@ -48,23 +47,6 @@ export default {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        chart: {
-          '1': 'hsl(var(--chart-1))',
-          '2': 'hsl(var(--chart-2))',
-          '3': 'hsl(var(--chart-3))',
-          '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))',
-        },
-        sidebar: {
-          DEFAULT: 'hsl(var(--sidebar-background))',
-          foreground: 'hsl(var(--sidebar-foreground))',
-          primary: 'hsl(var(--sidebar-primary))',
-          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-          accent: 'hsl(var(--sidebar-accent))',
-          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-          border: 'hsl(var(--sidebar-border))',
-          ring: 'hsl(var(--sidebar-ring))',
-        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -73,37 +55,46 @@ export default {
       },
       keyframes: {
         'accordion-down': {
-          from: {
-            height: '0',
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)',
-          },
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
         },
         'accordion-up': {
-          from: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-          to: {
-            height: '0',
-          },
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
         },
-        'breathing-bg': {
-          '0%, 100%': { transform: 'scale(1)', opacity: '1' },
-          '50%': { transform: 'scale(1.5)', opacity: '0.7' },
+        fadeIn: {
+            from: { opacity: '0', transform: 'translateY(10px)' },
+            to: { opacity: '1', transform: 'translateY(0)' },
         },
-        'pulse-slow': {
-            '0%, 100%': { opacity: '1', transform: 'scale(1)' },
-            '50%': { opacity: '0.8', transform: 'scale(1.05)' },
+        breathe: {
+            '0%': { backgroundColor: '#0c0a1e' },
+            '50%': { backgroundColor: '#1a163a' },
+            '100%': { backgroundColor: '#0c0a1e' },
+        },
+        pulse: {
+            '0%, 100%': { transform: 'scale(1)', opacity: '0.8' },
+            '50%': { transform: 'scale(1.05)', opacity: '1' },
+        },
+        rotate: { from: { transform: 'rotate(0deg)' }, to: { transform: 'rotate(360deg)' } },
+        draw: { to: { strokeDashoffset: '50' } },
+        slideUpFadeIn: {
+            from: { opacity: '0', transform: 'translateY(20px)' },
+            to: { opacity: '1', transform: 'translateY(0)' },
         },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        'breathing-bg': 'breathing-bg 8s ease-in-out infinite',
-        'pulse-slow': 'pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'fade-in': 'fadeIn 0.6s ease-out forwards',
+        'breathe': 'breathe 15s linear infinite',
+        'pulse': 'pulse 4s ease-in-out infinite',
+        'calculating-rotate': 'rotate 10s linear infinite',
+        'calculating-draw': 'draw 2s ease-in-out forwards',
+        'chat-bubble': 'slideUpFadeIn 0.5s ease-out forwards',
       },
     },
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
+
+    

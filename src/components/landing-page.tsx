@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ export default function LandingPage({ onSignIn }: LandingPageProps) {
       <div className="flex flex-col items-center gap-4 mb-8">
         <Logo className="h-16 w-16 text-primary animate-pulse-slow" />
         <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl text-foreground">
-          Cosmic Insights AI
+          Astra AI
         </h1>
       </div>
       <p className="max-w-xl mx-auto text-lg text-muted-foreground mb-8">
@@ -28,3 +29,5 @@ export default function LandingPage({ onSignIn }: LandingPageProps) {
     </main>
   );
 }
+
+    

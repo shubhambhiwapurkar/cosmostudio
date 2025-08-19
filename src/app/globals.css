@@ -1,61 +1,29 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 259 39% 37%;
-    --primary-foreground: 260 100% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 261 38% 82%;
-    --accent-foreground: 259 39% 20%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 259 39% 37%;
-    --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-  }
-
-  .dark {
-    --background: 0 0% 4%;
+    --background: 12 7% 5%; /* #0c0a1e */
     --foreground: 0 0% 98%;
-    --card: 259 20% 8%;
+    --card: 252 5% 15%; /* #24222b */
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 4%;
+    --popover: 12 7% 5%;
     --popover-foreground: 0 0% 98%;
-    --primary: 259 39% 52%;
-    --primary-foreground: 260 100% 98%;
-    --secondary: 0 0% 14.9%;
+    --primary: 258 81% 65%; /* #8b5cf6 -> purple-500 */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 252 5% 25%; /* #3e3b4a */
     --secondary-foreground: 0 0% 98%;
-    --muted: 259 20% 12%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 261 38% 82%;
-    --accent-foreground: 259 39% 15%;
-    --destructive: 0 62.8% 30.6%;
+    --muted: 252 5% 15%;
+    --muted-foreground: 240 4% 65%;
+    --accent: 258 81% 65%; /* purple-500 */
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 63% 31%;
     --destructive-foreground: 0 0% 98%;
-    --border: 259 20% 18%;
-    --input: 259 20% 18%;
-    --ring: 261 38% 82%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --border: 255 10% 25%;
+    --input: 255 10% 25%;
+    --ring: 258 81% 65%;
   }
 }
 
@@ -65,5 +33,60 @@
   }
   body {
     @apply bg-background text-foreground;
+     font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
+
+@layer components {
+    .celestial-bg {
+        background-color: #0c0a1e;
+        background-image: 
+            radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+            radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+            radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
+            radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
+        background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px; 
+        background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
+        animation: breathe 15s linear infinite;
+    }
+    .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .page {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        overflow-y: auto;
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+    }
+    .page::-webkit-scrollbar { display: none; } /* Chrome, Safari, Opera */
+    
+    .page.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    .main-content {
+         padding-bottom: 80px; /* Space for nav bar */
+    }
+    
+    .chat-bubble { animation: slideUpFadeIn 0.5s ease-out forwards; }
+
+    .nav-item.active svg { color: #c4b5fd; }
+    .nav-item.active p { color: #c4b5fd; }
+    
+    .calculating-ring {
+      stroke-dasharray: 251.2; /* 2 * PI * 40 */
+      stroke-dashoffset: 251.2;
+      animation: rotate 10s linear infinite, draw 2s ease-in-out forwards;
+    }
+}
+
+    

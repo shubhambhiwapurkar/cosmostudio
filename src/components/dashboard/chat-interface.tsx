@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
 import { SendHorizonal, Bot, User, Loader2 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
@@ -51,22 +52,24 @@ export default function ChatInterface({ birthData }: { birthData: BirthData }) {
     setInput('');
     setIsLoading(true);
 
-    const result = await getAiInsight(birthData, input);
-    
-    if (result.success) {
-      const assistantMessage: ChatMessage = { id: crypto.randomUUID(), role: 'assistant', content: result.message };
-      setMessages((prev) => [...prev, assistantMessage]);
-    } else {
-      toast({
-        variant: 'destructive',
-        title: 'Uh oh! Something went wrong.',
-        description: result.error,
-      });
-      // Add the user message back to input if AI fails
-      setMessages(prev => prev.slice(0, prev.length -1));
-      setInput(input);
-    }
-    setIsLoading(false);
+    // Add a bit of delay for the animation to be noticeable
+    setTimeout(async () => {
+        const result = await getAiInsight(birthData, input);
+        
+        if (result.success) {
+          const assistantMessage: ChatMessage = { id: crypto.randomUUID(), role: 'assistant', content: result.message };
+          setMessages((prev) => [...prev, assistantMessage]);
+        } else {
+          toast({
+            variant: 'destructive',
+            title: 'Uh oh! Something went wrong.',
+            description: result.error,
+          });
+          setMessages(prev => prev.slice(0, prev.length -1));
+          setInput(input);
+        }
+        setIsLoading(false);
+    }, 500);
   };
 
   return (
@@ -74,7 +77,7 @@ export default function ChatInterface({ birthData }: { birthData: BirthData }) {
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div className="pr-4 space-y-6">
           {messages.map((message) => (
-            <div key={message.id} className={cn("flex items-start gap-4", message.role === 'user' && 'justify-end')}>
+            <div key={message.id} className={cn("flex items-start gap-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500", message.role === 'user' && 'justify-end')}>
               {message.role === 'assistant' && (
                 <Avatar className="h-8 w-8 border border-primary/50">
                     <div className="flex h-full w-full items-center justify-center bg-primary/20 text-primary">
@@ -100,7 +103,7 @@ export default function ChatInterface({ birthData }: { birthData: BirthData }) {
             </div>
           ))}
           {isLoading && (
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-4 animate-in fade-in-0 duration-500">
                <Avatar className="h-8 w-8 border border-primary/50">
                     <div className="flex h-full w-full items-center justify-center bg-primary/20 text-primary">
                         <Loader2 className="h-5 w-5 animate-spin" />
@@ -139,3 +142,5 @@ export default function ChatInterface({ birthData }: { birthData: BirthData }) {
     </div>
   );
 }
+
+    
