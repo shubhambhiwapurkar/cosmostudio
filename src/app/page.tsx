@@ -8,7 +8,6 @@ import BirthChartForm from '@/components/onboarding/birth-chart-form';
 import Dashboard from '@/components/dashboard/dashboard';
 import { Toaster } from '@/components/ui/toaster';
 
-
 export default function Home() {
   const [appState, setAppState] = useState<'loading' | 'landing' | 'onboarding' | 'dashboard'>('loading');
   const [birthData, setBirthData] = useState<BirthData | null>(null);
@@ -18,33 +17,13 @@ export default function Home() {
       try {
         const res = await fetch('/api/current_user');
         if (!res.ok) {
-          throw new Error('Not authenticated');
+          // It's normal for this to fail if the user is not logged in
+          setAppState('landing');
+          return;
         }
         const user = await res.json();
 
-
-  const handleReset = () => {
-    setBirthData(null);
-    setAppState('landing');
-  }
-
-  const renderContent = () => {
-    switch (appState) {
-      case 'loading':
-        return <div>Loading...</div>; // Or a loading spinner component
-      case 'onboarding':
-        return <BirthChartForm onSubmit={handleFormSubmit} />;
-      case 'dashboard':
-        return birthData ? <Dashboard birthData={birthData} onReset={handleReset} /> : <div>Error: Birth data not available.</div>; // Should not happen if logic is correct
-      case 'landing':
-      default:
-        return <LandingPage />; // onSignIn prop removed
-    }
-  };
-
-
         if (user && user.birthChart) {
-          // Assuming the birthChart field in the user object contains the necessary BirthData
           setBirthData(user.birthChart);
           setAppState('dashboard');
         } else if (user) {
@@ -59,26 +38,51 @@ export default function Home() {
     };
 
     checkUser();
-  }, []); // Run only once on component mount
+  }, []);
 
-  const handleFormSubmit = (data: BirthData) => {
-    const saveBirthChart = async () => {
-      try {
-        const res = await fetch('/api/birthchart', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
-        const savedBirthChart = await res.json();
-        setBirthData(savedBirthChart);
-        setAppState('dashboard');
-      } catch (error) {
-        console.error("Error saving birth chart:", error);
+  const handleFormSubmit = async (data: BirthData) => {
+    try {
+      const res = await fetch('/api/birthchart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to save birth chart');
       }
-    };
-    saveBirthChart();
+
+      const savedBirthChart = await res.json();
+      setBirthData(savedBirthChart);
+      setAppState('dashboard');
+    } catch (error) {
+      console.error("Error saving birth chart:", error);
+      // Optionally show an error toast to the user here
+    }
+  };
+
+  const handleReset = () => {
+    // Here you would also call the logout endpoint
+    fetch('/api/logout');
+    setBirthData(null);
+    setAppState('landing');
+  };
+
+  const renderContent = () => {
+    switch (appState) {
+      case 'loading':
+        return <div>Loading...</div>; // You can replace this with a nice spinner component
+      case 'onboarding':
+        return <BirthChartForm onSubmit={handleFormSubmit} />;
+      case 'dashboard':
+        // The check for birthData is important here
+        return birthData ? <Dashboard birthData={birthData} onReset={handleReset} /> : <div>Loading Dashboard...</div>;
+      case 'landing':
+      default:
+        return <LandingPage />;
+    }
   };
 
   return (
