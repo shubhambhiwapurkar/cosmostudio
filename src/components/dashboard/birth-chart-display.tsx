@@ -33,7 +33,7 @@ const AstrologicalCard = ({
   </Card>
 );
 
-export default function BirthChartDisplay() {
+export default function BirthChartDisplay({ onLinkClick }: { onLinkClick?: () => void}) {
   return (
     <div className="space-y-6">
       <div className="space-y-1 animate-in fade-in-0 duration-500">
@@ -77,7 +77,11 @@ export default function BirthChartDisplay() {
             <Badge variant="outline">Mercury Sextile Pluto</Badge>
         </div>
         <p className="text-sm text-muted-foreground">
-            These are just highlights. Ask your AI astrologer for a deeper interpretation.
+            These are just highlights. {' '}
+            <a href="#" className="text-primary underline" onClick={(e) => { e.preventDefault(); onLinkClick?.(); }}>
+                Ask your AI astrologer
+            </a>
+            {' '} for a deeper interpretation.
         </p>
       </div>
     </div>

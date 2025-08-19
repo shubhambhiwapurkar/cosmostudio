@@ -58,7 +58,7 @@ export default function Home() {
       case 'loading':
         return (
           <div className="flex h-screen w-full items-center justify-center bg-background">
-              <div className="w-full max-w-md space-y-4 p-4">
+              <div className="w-full max-w-xs space-y-4 p-4">
                   <Skeleton className="h-12 w-full" />
                   <Skeleton className="h-24 w-full" />
                   <Skeleton className="h-12 w-1/2 mx-auto" />

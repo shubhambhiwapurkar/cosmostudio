@@ -78,7 +78,7 @@ export default function BirthChartForm({ onSubmit }: BirthChartFormProps) {
     <>
       {isLoading && <CalculatingChart />}
       <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-background">
-        <Card className="w-full max-w-md shadow-2xl shadow-primary/10">
+        <Card className="w-full max-w-sm shadow-2xl shadow-primary/10">
           <CardHeader>
             <CardTitle className="text-2xl">Unlock Your Cosmic Blueprint</CardTitle>
             <CardDescription>
