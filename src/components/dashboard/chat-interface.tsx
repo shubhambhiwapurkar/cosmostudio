@@ -65,8 +65,12 @@ export default function ChatInterface({ birthData }: { birthData: BirthData }) {
             title: 'Uh oh! Something went wrong.',
             description: result.error,
           });
-          setMessages(prev => prev.slice(0, prev.length -1));
-          setInput(input);
+          // Restore user input if submission fails
+          const lastMessage = messages[messages.length -1];
+          if(lastMessage.id === userMessage.id) {
+            setMessages(prev => prev.slice(0, prev.length -1));
+          }
+          setInput(userMessage.content);
         }
         setIsLoading(false);
     }, 500);
@@ -74,8 +78,8 @@ export default function ChatInterface({ birthData }: { birthData: BirthData }) {
 
   return (
     <div className="flex flex-col h-full p-4 space-y-4">
-      <ScrollArea className="flex-1" ref={scrollAreaRef}>
-        <div className="pr-4 space-y-6">
+      <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>
+        <div className="space-y-6">
           {messages.map((message) => (
             <div key={message.id} className={cn("flex items-start gap-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500", message.role === 'user' && 'justify-end')}>
               {message.role === 'assistant' && (
@@ -87,7 +91,7 @@ export default function ChatInterface({ birthData }: { birthData: BirthData }) {
                 </Avatar>
               )}
               <div className={cn(
-                  "max-w-md xl:max-w-lg rounded-lg p-3 text-sm whitespace-pre-wrap",
+                  "max-w-md xl:max-w-lg rounded-lg p-3 text-sm whitespace-pre-wrap shadow",
                   message.role === 'assistant' ? 'bg-muted' : 'bg-primary text-primary-foreground'
               )}>
                 {message.content}
@@ -117,7 +121,7 @@ export default function ChatInterface({ birthData }: { birthData: BirthData }) {
           )}
         </div>
       </ScrollArea>
-      <div className="px-2">
+      <div className="px-2 pb-20 lg:pb-0">
         <form onSubmit={handleSubmit} className="relative">
           <Textarea
             value={input}
@@ -142,5 +146,3 @@ export default function ChatInterface({ birthData }: { birthData: BirthData }) {
     </div>
   );
 }
-
-    

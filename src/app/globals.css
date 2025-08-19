@@ -5,24 +5,56 @@
 
 @layer base {
   :root {
-    --background: 12 7% 5%; /* #0c0a1e */
-    --foreground: 0 0% 98%;
-    --card: 252 5% 15%; /* #24222b */
-    --card-foreground: 0 0% 98%;
-    --popover: 12 7% 5%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 258 81% 65%; /* #8b5cf6 -> purple-500 */
-    --primary-foreground: 0 0% 98%;
-    --secondary: 252 5% 25%; /* #3e3b4a */
-    --secondary-foreground: 0 0% 98%;
-    --muted: 252 5% 15%;
-    --muted-foreground: 240 4% 65%;
-    --accent: 258 81% 65%; /* purple-500 */
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 255 10% 25%;
-    --input: 255 10% 25%;
+    --background: 252 10% 6%; /* A very dark, almost black purple */
+    --foreground: 255 5% 95%; /* A very light grey, almost white */
+    
+    --card: 252 8% 12%; /* Slightly lighter than background */
+    --card-foreground: 255 5% 95%;
+    
+    --popover: 252 10% 6%;
+    --popover-foreground: 255 5% 95%;
+    
+    --primary: 258 81% 65%; /* Vibrant purple from before */
+    --primary-foreground: 255 5% 98%;
+    
+    --secondary: 252 8% 20%; /* A mid-tone dark purple */
+    --secondary-foreground: 255 5% 98%;
+    
+    --muted: 252 8% 12%;
+    --muted-foreground: 255 5% 65%;
+    
+    --accent: 258 81% 65%;
+    --accent-foreground: 255 5% 98%;
+    
+    --destructive: 0 63% 40%;
+    --destructive-foreground: 255 5% 98%;
+    
+    --border: 252 8% 20%;
+    --input: 252 8% 20%;
+    --ring: 258 81% 65%;
+
+    --radius: 0.75rem;
+  }
+ 
+  .dark {
+    --background: 252 10% 6%;
+    --foreground: 255 5% 95%;
+    --card: 252 8% 12%;
+    --card-foreground: 255 5% 95%;
+    --popover: 252 10% 6%;
+    --popover-foreground: 255 5% 95%;
+    --primary: 258 81% 65%;
+    --primary-foreground: 255 5% 98%;
+    --secondary: 252 8% 20%;
+    --secondary-foreground: 255 5% 98%;
+    --muted: 252 8% 20%;
+    --muted-foreground: 255 5% 65%;
+    --accent: 258 81% 65%;
+    --accent-foreground: 255 5% 98%;
+    --destructive: 0 63% 40%;
+    --destructive-foreground: 255 5% 98%;
+    --border: 252 8% 20%;
+    --input: 252 8% 20%;
     --ring: 258 81% 65%;
   }
 }
@@ -41,52 +73,30 @@
 
 @layer components {
     .celestial-bg {
-        background-color: #0c0a1e;
+        background-color: hsl(var(--background));
         background-image: 
-            radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
-            radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
-            radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
-            radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
-        background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px; 
-        background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
-        animation: breathe 15s linear infinite;
+            radial-gradient(white, rgba(255,255,255,.1) 1px, transparent 30px),
+            radial-gradient(white, rgba(255,255,255,.05) 1px, transparent 20px);
+        background-size: 350px 350px, 250px 250px;
+        background-position: 0 0, 130px 270px;
+        animation: breathe 25s linear infinite;
     }
     .glass-card {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .page {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-        overflow-y: auto;
-        -ms-overflow-style: none; /* IE and Edge */
-        scrollbar-width: none; /* Firefox */
-    }
-    .page::-webkit-scrollbar { display: none; } /* Chrome, Safari, Opera */
-    
-    .page.active {
-        opacity: 1;
-        visibility: visible;
-    }
-    .main-content {
-         padding-bottom: 80px; /* Space for nav bar */
-    }
-    
-    .chat-bubble { animation: slideUpFadeIn 0.5s ease-out forwards; }
-
-    .nav-item.active svg { color: #c4b5fd; }
-    .nav-item.active p { color: #c4b5fd; }
-    
-    .calculating-ring {
-      stroke-dasharray: 251.2; /* 2 * PI * 40 */
-      stroke-dashoffset: 251.2;
-      animation: rotate 10s linear infinite, draw 2s ease-in-out forwards;
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
     }
 }
 
+@layer utilities {
+  .animation-delay-200 { animation-delay: 200ms; }
+  .animation-delay-400 { animation-delay: 400ms; }
+  .animation-delay-600 { animation-delay: 600ms; }
+}
     
+@keyframes breathe {
+    0% { background-color: hsl(var(--background)); }
+    50% { background-color: hsl(252, 10%, 9%); }
+    100% { background-color: hsl(var(--background)); }
+}
