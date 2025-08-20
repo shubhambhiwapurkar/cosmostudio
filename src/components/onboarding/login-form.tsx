@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { GoogleLogo } from '../icons/google-logo';
 import { Button } from '@/components/ui/button';
+import { auth } from '@/lib/firebase';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import {
   Form,
   FormControl,
@@ -44,6 +46,31 @@ export function LoginForm() {
     if (res.ok) {
       window.location.href = '/profile';
     } else {
+      // Handle error
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const idToken = await user.getIdToken();
+
+      const res = await fetch('/api/auth/google/callback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      if (res.ok) {
+        window.location.href = '/profile';
+      } else {
+        // Handle error
+      }
+    } catch (error) {
       // Handle error
     }
   }
@@ -91,7 +118,7 @@ export function LoginForm() {
         <Button
           variant="outline"
           type="button"
-          onClick={() => (window.location.href = '/api/auth/google')}
+          onClick={handleGoogleSignIn}
         >
           <GoogleLogo className="mr-2 h-4 w-4" />
           Google
