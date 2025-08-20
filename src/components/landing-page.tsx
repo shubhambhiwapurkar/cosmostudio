@@ -52,7 +52,7 @@ export default function LandingPage() {
           }}
         >
           <GoogleLogo />
-          Sign up with Google
+          Register with Google
         </Button>
       </div>
     </main>
