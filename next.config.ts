@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
         source: '/api/:path*',
         destination: process.env.NODE_ENV === 'development'
           ? 'http://localhost:5000/api/:path*'
-          : 'https://cosmotalks-140938356984.us-central1.run.app/api/:path*',
+          : 'https://cosmotalks-backend-app-unique.azurewebsites.net/api/:path*',
       },
     ]
   },
