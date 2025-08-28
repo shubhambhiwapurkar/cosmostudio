@@ -1,4 +1,3 @@
-
 "use client";
 import { LogOut, PanelLeft, Compass, MessageCircle, PieChart, Sparkles, UserCircle } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -10,6 +9,7 @@ import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import { Logo } from "../icons/logo";
 import BirthChartDisplay from "./birth-chart-display";
 import ChatInterface from "./chat-interface";
+import UserProfile from "./user-profile";
 import { cn } from "@/lib/utils";
 
 type DashboardProps = {
@@ -30,8 +30,8 @@ type DailyContent = {
   exploreTopic: string;
 };
 
-const NavItem = ({ page, label, icon: Icon, currentPage, navigate }) => (
-    <button 
+const NavItem = ({ page, label, icon: Icon, currentPage, navigate }: { page: string, label: string, icon: React.ElementType, currentPage: string, navigate: (page: string) => void }) => (
+    <button
       className={cn(
         "nav-item flex items-center justify-start gap-3 rounded-md p-3 text-left w-full text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors",
         currentPage === page && "bg-accent text-accent-foreground font-semibold"
@@ -43,7 +43,13 @@ const NavItem = ({ page, label, icon: Icon, currentPage, navigate }) => (
     </button>
 );
 
-const MobileNavItem = ({ page, label, icon: Icon, currentPage, navigate }) => (
+type UserProfileData = {
+  displayName: string;
+  email: string;
+  photoURL?: string;
+};
+
+const MobileNavItem = ({ page, label, icon: Icon, currentPage, navigate }: { page: string, label: string, icon: React.ElementType, currentPage: string, navigate: (page: string) => void }) => (
     <button className={cn("nav-item text-center text-muted-foreground flex-1", currentPage === page ? 'text-primary' : '')} onClick={() => navigate(page)}>
         <Icon className="mx-auto" />
         <p className="text-xs mt-1">{label}</p>
@@ -56,6 +62,7 @@ export default function Dashboard({ birthData, onReset }: DashboardProps) {
   const [currentPage, setCurrentPage] = useState('today');
   const [messages, setMessages] = useState<Message[]>([]);
   const [dailyContent, setDailyContent] = useState<DailyContent | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,6 +81,13 @@ export default function Dashboard({ birthData, onReset }: DashboardProps) {
           setDailyContent(dailyContentData);
         } else {
            console.error("Failed to fetch daily content");
+        }
+        const profileRes = await fetch('/api/profile');
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          setUserProfile(profileData);
+        } else {
+          console.error("Failed to fetch user profile");
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -113,8 +127,10 @@ export default function Dashboard({ birthData, onReset }: DashboardProps) {
 
   const PageContent = () => {
     switch (currentPage) {
-        case 'chat': 
-            return <ChatInterface birthData={birthData} messages={messages} onSendMessage={sendMessage} />;
+        case 'chat':
+            return <ChatInterface birthData={birthData} />;
+        case 'profile':
+            return userProfile ? <UserProfile {...userProfile} /> : <div>Loading profile...</div>;
         case 'today':
         default:
             return (
