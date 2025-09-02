@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { getAiInsight } from '@/lib/actions';
+import { createSession, sendMessage, getMessages } from '@/lib/actions';
 import type { BirthData, ChatMessage } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -24,11 +24,30 @@ const initialMessages: ChatMessage[] = [
 const initialPrompt = "What do my Sun and Moon signs mean together?";
 
 export default function ChatInterface({ birthData }: { birthData: BirthData }) {
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState(initialPrompt);
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const initChat = async () => {
+      try {
+        const session = await createSession(birthData);
+        setSessionId(session.id);
+        const initialMessages = await getMessages(session.id);
+        setMessages(initialMessages.map((msg: any) => ({ ...msg, id: msg.id || crypto.randomUUID() })));
+      } catch (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Uh oh! Something went wrong.',
+          description: 'Failed to start a chat session.',
+        });
+      }
+    };
+    initChat();
+  }, [birthData, toast]);
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -45,16 +64,17 @@ export default function ChatInterface({ birthData }: { birthData: BirthData }) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !sessionId) return;
 
     const userMessage: ChatMessage = { id: crypto.randomUUID(), role: 'user', content: input };
     setMessages((prev) => [...prev, userMessage]);
+    const currentInput = input;
     setInput('');
     setIsLoading(true);
 
     // Add a bit of delay for the animation to be noticeable
     setTimeout(async () => {
-        const result = await getAiInsight(birthData, input);
+        const result = await sendMessage(sessionId, currentInput);
         
         if (result.success) {
           const assistantMessage: ChatMessage = { id: crypto.randomUUID(), role: 'assistant', content: result.message };
@@ -66,11 +86,8 @@ export default function ChatInterface({ birthData }: { birthData: BirthData }) {
             description: result.error,
           });
           // Restore user input if submission fails
-          const lastMessage = messages[messages.length -1];
-          if(lastMessage.id === userMessage.id) {
-            setMessages(prev => prev.slice(0, prev.length -1));
-          }
-          setInput(userMessage.content);
+          setMessages((prev) => prev.slice(0, prev.length - 1));
+          setInput(currentInput);
         }
         setIsLoading(false);
     }, 500);
