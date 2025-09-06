@@ -33,7 +33,8 @@ import {
 } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import type { BirthData } from "@/lib/types";
+import { createBirthChart } from "@/lib/chart-api";
+import { useRouter } from "next/navigation";
 import CalculatingChart from "./calculating-chart";
 
 const formSchema = z.object({
@@ -43,35 +44,60 @@ const formSchema = z.object({
   timeOfBirth: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, {
     message: "Please enter a valid time in HH:mm format.",
   }),
-  placeOfBirth: z.string().min(2, {
-    message: "Place of birth must be at least 2 characters.",
+  latitude: z.coerce.number().min(-90).max(90, {
+    message: "Latitude must be between -90 and 90.",
+  }),
+  longitude: z.coerce.number().min(-180).max(180, {
+    message: "Longitude must be between -180 and 180.",
+  }),
+  timezone: z.string().min(1, {
+    message: "Timezone is required.",
   }),
 });
 
 type BirthChartFormProps = {
-  onSubmit: (data: BirthData) => void;
+  onChartCreated: () => void;
 };
 
-export default function BirthChartForm({ onSubmit }: BirthChartFormProps) {
+export default function BirthChartForm({ onChartCreated }: BirthChartFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      placeOfBirth: "",
+      latitude: 0,
+      longitude: 0,
+      timezone: "",
     },
   });
 
-  function handleFormSubmit(values: z.infer<typeof formSchema>) {
+  async function handleFormSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    setTimeout(() => {
-      onSubmit(values);
+    try {
+      await createBirthChart({
+        birth_date: format(values.dateOfBirth, "yyyy-MM-dd"),
+        birth_time: values.timeOfBirth,
+        latitude: values.latitude,
+        longitude: values.longitude,
+        timezone: values.timezone,
+      });
       toast({
         title: "Your chart is ready!",
         description: "Your cosmic blueprint has been generated.",
       });
-    }, 2500); // Simulate calculation time for animation
+      onChartCreated();
+      router.push('/dashboard');
+    } catch (error: any) {
+      toast({
+        title: "Error creating chart",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -150,22 +176,54 @@ export default function BirthChartForm({ onSubmit }: BirthChartFormProps) {
                 />
                 <FormField
                   control={form.control}
-                  name="placeOfBirth"
+                  name="latitude"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Place of Birth</FormLabel>
+                      <FormLabel>Latitude</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., San Francisco, CA" {...field} />
+                        <Input type="number" step="0.0001" placeholder="e.g., 34.0522" {...field} />
                       </FormControl>
-                       <FormDescription>
-                        City and state/country.
+                      <FormDescription>
+                        Geographic latitude (-90 to 90).
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" size="lg">
-                  Generate Chart
+                <FormField
+                  control={form.control}
+                  name="longitude"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Longitude</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.0001" placeholder="e.g., -118.2437" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Geographic longitude (-180 to 180).
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="timezone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Timezone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., America/Los_Angeles" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        IANA Time Zone Database name (e.g., America/New_York).
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+                  {isLoading ? "Generating Chart..." : "Generate Chart"}
                 </Button>
               </form>
             </Form>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
@@ -7,17 +6,19 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { createSession, sendMessage, getMessages } from '@/lib/actions';
-import type { BirthData, ChatMessage } from '@/lib/types';
+import apiClient from '@/lib/api-client';
+import type { BirthData, ChatMessage, ChatSession } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Logo } from '../icons/logo';
 
 const initialMessages: ChatMessage[] = [
     {
-      id: 'init1',
+      id: crypto.randomUUID(),
       role: 'assistant',
       content: "Welcome, stargazer! I've analyzed your cosmic blueprint. What secrets of the universe shall we uncover first? You can start by asking about your life's purpose.",
+      message_type: 'welcome',
+      timestamp: new Date().toISOString()
     }
 ];
 
@@ -34,9 +35,12 @@ export default function ChatInterface({ birthData }: { birthData: BirthData }) {
   useEffect(() => {
     const initChat = async () => {
       try {
-        const session = await createSession(birthData);
+        const session = await apiClient.post('/v1/chat/sessions', {
+          name: 'Chat with AI Astrologer',
+          context: { birthData },
+        });
         setSessionId(session.id);
-        const initialMessages = await getMessages(session.id);
+        const initialMessages = await apiClient.get(`/v1/chat/sessions/${session.id}/messages`);
         setMessages(initialMessages.map((msg: any) => ({ ...msg, id: msg.id || crypto.randomUUID() })));
       } catch (error) {
         toast({
@@ -74,16 +78,17 @@ export default function ChatInterface({ birthData }: { birthData: BirthData }) {
 
     // Add a bit of delay for the animation to be noticeable
     setTimeout(async () => {
-        const result = await sendMessage(sessionId, currentInput);
-        
-        if (result.success) {
-          const assistantMessage: ChatMessage = { id: crypto.randomUUID(), role: 'assistant', content: result.message };
+        try {
+          const response = await apiClient.post(`/v1/chat/sessions/${sessionId}/messages`, {
+            prompt: currentInput,
+          });
+          const assistantMessage: ChatMessage = { id: crypto.randomUUID(), role: 'assistant', content: response.content };
           setMessages((prev) => [...prev, assistantMessage]);
-        } else {
+        } catch (error: any) {
           toast({
             variant: 'destructive',
             title: 'Uh oh! Something went wrong.',
-            description: result.error,
+            description: error.message || 'I seem to have lost my cosmic connection. Please try again shortly.',
           });
           // Restore user input if submission fails
           setMessages((prev) => prev.slice(0, prev.length - 1));

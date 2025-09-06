@@ -14,6 +14,9 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { loginUser, storeToken, storeRefreshToken } from '@/lib/auth';
+import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   email: z.string().email({
@@ -25,6 +28,7 @@ const formSchema = z.object({
 });
 
 export function LoginForm() {
+  const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -33,23 +37,32 @@ export function LoginForm() {
     },
   });
 
+  const { setAuth } = useAuth();
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(values),
-    });
-    if (res.ok) {
-      window.location.href = '/profile';
-    } else {
-      // Handle error
+    try {
+      const response = await loginUser(values);
+      storeToken(response.access_token);
+      if (response.refresh_token) {
+        storeRefreshToken(response.refresh_token);
+      }
+      setAuth(response.access_token);
+      // Use replace instead of push to prevent back navigation to login
+      router.replace('/dashboard');
+    } catch (error) {
+      console.error(error);
+      // TODO: Add error toast here
+      form.setError('root', { 
+        message: 'Login failed. Please check your credentials and try again.' 
+      });
     }
   }
 
   async function handleGoogleSignIn() {
-    window.location.href = '/api/auth/google';
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const response = await fetch(`${baseUrl}/api/v1/auth/google`);
+    const data = await response.json();
+    window.location.href = data.url;
   }
 
   return (

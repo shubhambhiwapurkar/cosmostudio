@@ -1,7 +1,10 @@
 "use client";
 import { LogOut, PanelLeft, Compass, MessageCircle, PieChart, Sparkles, UserCircle } from "lucide-react";
 import { useState, useEffect } from "react";
-import type { BirthData } from "@/lib/types";
+import type { BirthData, ChatMessage, DailyContent, User } from "@/lib/types";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useToast } from "@/hooks/use-toast";
+import { authService, chatService, dailyContentService } from "@/lib/api-services";
 
 import { Button } from "../ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
@@ -17,19 +20,6 @@ type DashboardProps = {
   onReset: () => void;
 };
 
-type Message = {
-  sender: 'user' | 'ai';
-  text: string;
-  timestamp: string;
-};
-
-type DailyContent = {
-  dailyAffirmation: string;
-  keyTransits: { transit: string; description: string; }[];
-  dailyChartInsight: string;
-  exploreTopic: string;
-};
-
 const NavItem = ({ page, label, icon: Icon, currentPage, navigate }: { page: string, label: string, icon: React.ElementType, currentPage: string, navigate: (page: string) => void }) => (
     <button
       className={cn(
@@ -43,12 +33,6 @@ const NavItem = ({ page, label, icon: Icon, currentPage, navigate }: { page: str
     </button>
 );
 
-type UserProfileData = {
-  displayName: string;
-  email: string;
-  photoURL?: string;
-};
-
 const MobileNavItem = ({ page, label, icon: Icon, currentPage, navigate }: { page: string, label: string, icon: React.ElementType, currentPage: string, navigate: (page: string) => void }) => (
     <button className={cn("nav-item text-center text-muted-foreground flex-1", currentPage === page ? 'text-primary' : '')} onClick={() => navigate(page)}>
         <Icon className="mx-auto" />
@@ -60,41 +44,83 @@ const MobileNavItem = ({ page, label, icon: Icon, currentPage, navigate }: { pag
 export default function Dashboard({ birthData, onReset }: DashboardProps) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState('today');
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [dailyContent, setDailyContent] = useState<DailyContent | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
+  const [userProfile, setUserProfile] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState({
+    chat: true,
+    daily: true,
+    profile: true
+  });
+  const [error, setError] = useState<Record<string, string | null>>({
+    chat: null,
+    daily: null,
+    profile: null
+  });
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const historyRes = await fetch('/api/chat/history');
-        if (historyRes.ok) {
-          const history = await historyRes.json();
-          setMessages(history);
-        } else {
-          console.error("Failed to fetch chat history");
+        // Fetch chat history
+        setIsLoading(prev => ({ ...prev, chat: true }));
+        try {
+          const chatSession = await chatService.createSession("Daily Chat", { birthData });
+          const history = await chatService.getMessages(chatSession.id);
+          setMessages(history.messages);
+        } catch (err) {
+          console.error("Chat error:", err);
+          setError(prev => ({ ...prev, chat: "Failed to fetch chat history" }));
+          toast({
+            title: "Chat Error",
+            description: "Could not load chat history. Please try again later.",
+            variant: "destructive",
+          });
         }
+        setIsLoading(prev => ({ ...prev, chat: false }));
 
-        const dailyContentRes = await fetch('/api/daily-content');
-        if (dailyContentRes.ok) {
-          const dailyContentData = await dailyContentRes.json();
+        // Fetch daily content
+        setIsLoading(prev => ({ ...prev, daily: true }));
+        try {
+          const dailyContentData = await dailyContentService.getDailyContent();
           setDailyContent(dailyContentData);
-        } else {
-           console.error("Failed to fetch daily content");
+        } catch (err) {
+          console.error("Daily content error:", err);
+          setError(prev => ({ ...prev, daily: "Failed to fetch daily content" }));
+          toast({
+            title: "Content Error",
+            description: "Could not load daily content. Please try again later.",
+            variant: "destructive",
+          });
         }
-        const profileRes = await fetch('/api/profile');
-        if (profileRes.ok) {
-          const profileData = await profileRes.json();
+        setIsLoading(prev => ({ ...prev, daily: false }));
+
+        // Fetch user profile
+        setIsLoading(prev => ({ ...prev, profile: true }));
+        try {
+          const profileData = await authService.getCurrentUser();
           setUserProfile(profileData);
-        } else {
-          console.error("Failed to fetch user profile");
+        } catch (err) {
+          console.error("Profile error:", err);
+          setError(prev => ({ ...prev, profile: "Failed to fetch user profile" }));
+          toast({
+            title: "Profile Error",
+            description: "Could not load user profile. Please try again later.",
+            variant: "destructive",
+          });
         }
+        setIsLoading(prev => ({ ...prev, profile: false }));
       } catch (error) {
         console.error("Error fetching data:", error);
+        toast({
+          title: "Error",
+          description: "Something went wrong. Please try refreshing the page.",
+          variant: "destructive",
+        });
       }
     };
     fetchData();
-  }, []);
+  }, [toast]);
 
   const navigate = (page: string) => {
     setCurrentPage(page);
@@ -102,11 +128,11 @@ export default function Dashboard({ birthData, onReset }: DashboardProps) {
   }
 
   const sendMessage = async (text: string) => {
-    const newMessage: Message = { sender: 'user', text, timestamp: new Date().toISOString() };
+    const newMessage: ChatMessage = { sender: 'user', text, timestamp: new Date().toISOString() };
     setMessages(prevMessages => [...prevMessages, newMessage]);
 
     try {
-      const res = await fetch('/api/chat', {
+      const res = await fetch('/api/v1/chat/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -118,7 +144,7 @@ export default function Dashboard({ birthData, onReset }: DashboardProps) {
         throw new Error('Failed to send message');
       }
 
-      const aiResponse: Message = await res.json();
+      const aiResponse: ChatMessage = await res.json();
       setMessages(prevMessages => [...prevMessages, newMessage, aiResponse]);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -128,16 +154,40 @@ export default function Dashboard({ birthData, onReset }: DashboardProps) {
   const PageContent = () => {
     switch (currentPage) {
         case 'chat':
+            if (isLoading.chat) {
+                return <div className="p-6 flex items-center justify-center">
+                    <LoadingSpinner />
+                </div>;
+            }
+            if (error.chat) {
+                return <div className="p-6 text-center text-red-500">{error.chat}</div>;
+            }
             return <ChatInterface birthData={birthData} />;
         case 'profile':
-            return userProfile ? <UserProfile {...userProfile} /> : <div>Loading profile...</div>;
+            if (isLoading.profile) {
+                return <div className="p-6 flex items-center justify-center">
+                    <div className="loading-spinner" />
+                </div>;
+            }
+            if (error.profile) {
+                return <div className="p-6 text-center text-red-500">{error.profile}</div>;
+            }
+            return userProfile ? <UserProfile {...userProfile} /> : null;
         case 'today':
         default:
             return (
                 <div className="p-6">
-                    <h1 className="text-3xl font-bold text-foreground">Good Evening, Alex</h1>
+                    <h1 className="text-3xl font-bold text-foreground">
+                        Good Evening, {userProfile?.displayName || 'Friend'}
+                    </h1>
                     <p className="text-muted-foreground">Here is your cosmic forecast for today.</p>
-                    {dailyContent ? (
+                    {isLoading.daily ? (
+                        <div className="flex items-center justify-center h-64">
+                            <div className="loading-spinner" />
+                        </div>
+                    ) : error.daily ? (
+                        <div className="text-center text-red-500 mt-8">{error.daily}</div>
+                    ) : dailyContent ? (
                         <div className="mt-8 space-y-6">
                             <div className="glass-card p-5 rounded-xl animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
                                 <h2 className="font-semibold text-primary">Your Daily Affirmation</h2>

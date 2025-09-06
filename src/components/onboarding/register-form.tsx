@@ -15,9 +15,15 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
+import { registerUser, storeToken } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+
 const formSchema = z.object({
-  displayName: z.string().min(2, {
-    message: 'Display name must be at least 2 characters.',
+  first_name: z.string().min(2, {
+    message: 'First name must be at least 2 characters.',
+  }),
+  last_name: z.string().min(2, {
+    message: 'Last name must be at least 2 characters.',
   }),
   email: z.string().email({
     message: 'Invalid email address.',
@@ -25,29 +31,33 @@ const formSchema = z.object({
   password: z.string().min(6, {
     message: 'Password must be at least 6 characters.',
   }),
+  birth_date: z.string(),
+  birth_time: z.string(),
+  birth_place: z.string(),
 });
 
 export function RegisterForm() {
+  const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      displayName: '',
+      first_name: '',
+      last_name: '',
       email: '',
       password: '',
+      birth_date: '',
+      birth_time: '',
+      birth_place: '',
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(values),
-    });
-    if (res.ok) {
-      window.location.href = '/profile';
-    } else {
+    try {
+      const response = await registerUser(values);
+      storeToken(response.access_token);
+      router.push('/profile');
+    } catch (error) {
+      console.error(error);
       // Handle error
     }
   }
@@ -57,12 +67,25 @@ export function RegisterForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="displayName"
+          name="first_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Display Name</FormLabel>
+              <FormLabel>First Name</FormLabel>
               <FormControl>
-                <Input placeholder="Your Name" {...field} />
+                <Input placeholder="First Name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="last_name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Last Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Last Name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -89,6 +112,45 @@ export function RegisterForm() {
               <FormLabel>Password</FormLabel>
               <FormControl>
                 <Input type="password" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="birth_date"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Birth Date</FormLabel>
+              <FormControl>
+                <Input type="date" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="birth_time"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Birth Time</FormLabel>
+              <FormControl>
+                <Input type="time" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="birth_place"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Birth Place</FormLabel>
+              <FormControl>
+                <Input placeholder="City, Country" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
